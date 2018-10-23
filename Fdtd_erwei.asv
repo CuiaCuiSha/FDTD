@@ -52,11 +52,11 @@ TimeLong=fix(3* max([X_long,Y_long,Z_long]) /c/dt );
 %----------------------------------%
 Ex=zeros(X_num,Y_num+1,TimeLong+1);
 Ey=zeros(X_num+1,Y_num,TimeLong+1);
-Ez=zeros(X_num+1,Y_num+1,TimeLong+1);
+% Ez=zeros(X_num+1,Y_num+1,TimeLong+1);
 
 Hx=zeros(X_num+1,Y_num,TimeLong+1);
 Hy=zeros(X_num,Y_num+1,TimeLong+1);
-Hz=zeros(X_num,Y_num,TimeLong+1);
+% Hz=zeros(X_num,Y_num,TimeLong+1);
 
 
 %----------------------------------%
@@ -89,8 +89,8 @@ for t=1:TimeLong
             
             
             Ex(ii,jj,kk,t+1)=Ex(ii,jj,kk,t)+...
-                dt/epsilon*( ( Hz(ii,jj,kk,t+1)-Hy(ii,jj-1,kk,t+1) )/dy+...
-                ( Hz(ii,jj,kk-1,t+1)-Hz(ii,jj,kk,t+1) )/dz  );
+                dt/epsilon*( ( Hz(ii,jj,kk,t+1)-Hz(ii,jj-1,kk,t+1) )/dy+...
+                ( Hy(ii,jj,kk-1,t+1)-Hy(ii,jj,kk,t+1) )/dz  );
             
             Ey(ii,jj,kk,t+1)=Ey(ii,jj,kk,t)+...
                 dt/epsilon*( ( Hx(ii,jj,kk,t+1)-Hx(ii,jj,kk-1,t+1) )/dz+...
@@ -107,52 +107,11 @@ for t=1:TimeLong
     
     
     %边界条件
-    %三阶廖氏吸收边界。
-    if t>2
-        Ex(1,:,t+1)=8/9*Ex(1,:,t)+4/9*Ex(2,:,t)-3/8*Ex(3,:,t)-3*Ex(2,:,t-1)-...
-            1/8*Ex(1,:,t-2)+3/4*Ex(2,:,t-2)+3/8*Ex(3,:,t-2);
-        
-        Ey(1,:,t+1)=8/9*Ey(1,:,t)+4/9*Ey(2,:,t)-3/8*Ey(3,:,t)-3*Ey(2,:,t-1)-...
-            1/8*Ey(1,t-2)+3/4*Ey(2,:,t-2)+3/8*Ey(3,:,t-2);
-        
-        Ez(1,:,t+1)=8/9*Ez(1,:,t)+4/9*Ez(2,:,t)-3/8*Ez(3,:,t)-3*Ez(2,:,t-1)-...
-            1/8*Ez(1,:,t-2)+3/4*Ez(2,:,t-2)+3/8*Ez(3,:,t-2);
-        
-        Hx(1,:,t+1)=8/9*Hx(1,:,t)+4/9*Hx(2,:,t)-3/8*Hx(3,:,t)-3*Hx(2,:,t-1)-...
-            1/8*Hx(1,:,t-2)+3/4*Hx(2,:,t-2)+3/8*Hx(3,:,t-2);
-        
-        Hy(1,:,t+1)=8/9*Hy(1,:,t)+4/9*Hy(2,:,t)-3/8*Hy(3,:,t)-3*Hy(2,:,t-1)-...
-            1/8*Hy(1,:,t-2)+3/4*Hy(2,:,t-2)+3/8*Hy(3,:,t-2);
-        
-        Hz(1,:,t+1)=8/9*Hz(1,:,t)+4/9*Hz(2,:,t)-3/8*Hz(3,:,t)-3*Hz(2,:,t-1)-...
-            1/8*Hz(1,:,t-2)+3/4*Hz(2,:,t-2)+3/8*Hz(3,:,t-2);
-    elseif t==2
-            Ex(1,:,t+1)=8/9*Ex(1,:,t)+4/9*Ex(2,:,t)-3/8*Ex(3,:,t)-3*Ex(2,:,t-1);
-            
-            Ey(1,:,t+1)=8/9*Ey(1,:,t)+4/9*Ey(2,:,t)-3/8*Ey(3,:,t)-3*Ey(2,:,t-1);
-            
-            Ez(1,:,t+1)=8/9*Ez(1,:,t)+4/9*Ez(2,:,t)-3/8*Ez(3,:,t)-3*Ez(2,:,t-1);
-            
-            Hx(1,:,t+1)=8/9*Hx(1,:,t)+4/9*Hx(2,:,t)-3/8*Hx(3,:,t)-3*Hx(2,:,t-1);
-            
-            Hy(1,:,t+1)=8/9*Hy(1,:,t)+4/9*Hy(2,:,t)-3/8*Hy(3,:,t)-3*Hy(2,:,t-1);
-            
-            Hz(1,:,t+1)=8/9*Hz(1,:,t)+4/9*Hz(2,:,t)-3/8*Hz(3,:,t)-3*Hz(2,:,t-1);
-    else
-                     Ex(1,:,t+1)=8/9*Ex(1,:,t)+4/9*Ex(2,:,t)-3/8*Ex(3,:,t)-3*Ex(2,:,t-1);
-            
-            Ey(1,:,t+1)=8/9*Ey(1,:,t)+4/9*Ey(2,:,t)-3/8*Ey(3,:,t)-3*Ey(2,:,t-1);
-            
-            Ez(1,:,t+1)=8/9*Ez(1,:,t)+4/9*Ez(2,:,t)-3/8*Ez(3,:,t)-3*Ez(2,:,t-1);
-            
-            Hx(1,:,t+1)=8/9*Hx(1,:,t)+4/9*Hx(2,:,t)-3/8*Hx(3,:,t)-3*Hx(2,:,t-1);
-            
-            Hy(1,:,t+1)=8/9*Hy(1,:,t)+4/9*Hy(2,:,t)-3/8*Hy(3,:,t)-3*Hy(2,:,t-1);
-            
-            Hz(1,:,t+1)=8/9*Hz(1,:,t)+4/9*Hz(2,:,t)-3/8*Hz(3,:,t)-3*Hz(2,:,t-1);
-            
-    end
-        
+
+   
+    
+    
+    
     
     
 end
