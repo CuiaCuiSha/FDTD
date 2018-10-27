@@ -71,15 +71,16 @@ for t=1:800
     %   上下壁板
     Ez(1,:)=0;
     Ez(X_num+1,:)=0;
+    
     %   挡板
     Ex(1:fix(X_num/3),fix(Z_num/2))=0;
     Ex(fix(2*X_num/3):X_num,fix(Z_num/2))=0;
     %
-    % 一阶Mur吸收条件 %真正
+    % 一阶Mur吸收条件
     Ex(:,1)=Ext(:,2)+( (c*dt-dz)/(c*dt+dz)*( Ex(:,2)-Ext(:,1)) );
     Ez(:,1)=Ezt(:,2)+( (c*dt-dz)/(c*dt+dz)*( Ez(:,2)-Ezt(:,1)) );
-%     Hy(:,1)=Hyt(:,2)+( (c*dt-dz)/(c*dt+dz)*( Hy(:,2)-Hyt(:,1)) );
-%     
+    Hy(:,1)=Hyt(:,2)+( (c*dt-dz)/(c*dt+dz)*( Hy(:,2)-Hyt(:,1)) );
+    
     
     %     Ex(:,Z_num+1)=Ext(:,Z_num)+( (c*dt-dz)/(c*dt+dz)*( Ex(:,Z_num)-Ext(:,Z_num+1)) );
     %     Ez(:,Z_num)=Ezt(:,Z_num-1)+( (c*dt-dz)/(c*dt+dz)*( Ez(:,Z_num-1)-Ezt(:,Z_num)) );
