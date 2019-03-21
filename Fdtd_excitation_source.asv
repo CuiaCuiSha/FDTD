@@ -15,14 +15,11 @@
 % Es=exp( -((n-51)/17).^2);
 % plot(n,Es)
 % figure
-% N=2^nextpow2(length(Vin));
+% N=2^nextpow2(length());
 % 
 % Y=fft(Es,N);
 % figure plot(abs(Y(1:N/2+1)/N))
 
-
-N=2^nextpow2(length(Vin));
-YYY=fft(Vin,N);
 figure
-plot(abs(YYY(1:N/2+1)))
-
+plot(Vin)
+Vin

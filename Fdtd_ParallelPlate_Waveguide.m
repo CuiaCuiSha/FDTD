@@ -8,22 +8,19 @@ clc;clear all;close all
 %----------------------------------%
 %%   常数项，固定量设定
 %----------------------------------%
-
 c=2.998e8;
 mu=4*pi*1e-7;
 epsilon=8.854e-12;
-
 %----------------------------------%
 %   X is long /m along axis x Y is wide /m along axis y
 X_long=0.3;
 Y_long=1;
 Z_long=1;
+fmax=5e9;     %   3 mm
 
-Freq_max=5e9;     %   3 mm
-
-dx=1/20*c/Freq_max;     X_num=fix(X_long/dx);
-dy=1/20*c/Freq_max;     Y_num=fix(Y_long/dy);
-dz=1/20*c/Freq_max;     Z_num=fix(Z_long/dz);
+dx=1/20*c/fmax;     X_num=fix(X_long/dx);
+dy=1/20*c/fmax;     Y_num=fix(Y_long/dy);
+dz=1/20*c/fmax;     Z_num=fix(Z_long/dz);
 
 %稳定性条件，dxdydz相等
 dt=1/( c*sqrt(3/(dx)^2) );
@@ -33,6 +30,11 @@ TimeLong=fix(3* max([X_long,Y_long,Z_long]) /c/dt );
 %   dt leq 1/c*sqrt（1/dx2+1/dy2+1/dz2）
 %   5 Ghz ，dt less 0.0021 s
 %----------------------------------%
+%   激励源设定，
+t_max=1/2/fmax;
+t_decay=fix(t_max/dt)
+t0=4*t_decay;
+t_source=6*t_decay;
 
 %%   场的初始化
 %----------------------------------%
@@ -42,13 +44,12 @@ Hy=zeros(X_num,Z_num);
 
 Ext=Ex;Ezt=Ez;Hyt=Hy;
 
-
 %%   计算
-for t=1:800
+for t=1:3800
     %%   source
-    if t<= 60
+    if t<= t_source
         
-        Ex(1:X_num,50)=10*exp( -((t-30)/10).^2);
+        Ex(1:X_num,50)=10*exp( -((t-t0)/t_decay).^2);
         
     end
     
@@ -61,6 +62,9 @@ for t=1:800
     Ezt=Ez;
     Hyt=Hy;
     
+ 
+    
+    
     Hy=Hy+dt/mu*(  ( Ez(2:X_num+1,:)-Ez(1:X_num,:) )./dx + ( Ex(:,1:Z_num)-Ex(:,2:Z_num+1) )./dz) ;
     Ex(:,2:Z_num)=Ex(:,2:Z_num)+...
         dt/epsilon*( ( Hy(:,1:Z_num-1)-Hy(:,2:Z_num) )/dz  );
@@ -71,21 +75,20 @@ for t=1:800
     %   上下壁板
     Ez(1,:)=0;
     Ez(X_num+1,:)=0;
-    
     %   挡板
     Ex(1:fix(X_num/3),fix(Z_num/2))=0;
     Ex(fix(2*X_num/3):X_num,fix(Z_num/2))=0;
     %
-    % 一阶Mur吸收条件
+    % 一阶Mur吸收条件 %吸收条件中真正起作用的其实是Ex，Ez的吸收
     Ex(:,1)=Ext(:,2)+( (c*dt-dz)/(c*dt+dz)*( Ex(:,2)-Ext(:,1)) );
     Ez(:,1)=Ezt(:,2)+( (c*dt-dz)/(c*dt+dz)*( Ez(:,2)-Ezt(:,1)) );
-    Hy(:,1)=Hyt(:,2)+( (c*dt-dz)/(c*dt+dz)*( Hy(:,2)-Hyt(:,1)) );
+    %     Hy(:,1)=Hyt(:,2)+( (c*dt-dz)/(c*dt+dz)*( Hy(:,2)-Hyt(:,1)) );
+    %
     
-    
-    %     Ex(:,Z_num+1)=Ext(:,Z_num)+( (c*dt-dz)/(c*dt+dz)*( Ex(:,Z_num)-Ext(:,Z_num+1)) );
-    %     Ez(:,Z_num)=Ezt(:,Z_num-1)+( (c*dt-dz)/(c*dt+dz)*( Ez(:,Z_num-1)-Ezt(:,Z_num)) );
+    Ex(:,Z_num+1)=Ext(:,Z_num)+( (c*dt-dz)/(c*dt+dz)*( Ex(:,Z_num)-Ext(:,Z_num+1)) );
+    Ez(:,Z_num)=Ezt(:,Z_num-1)+( (c*dt-dz)/(c*dt+dz)*( Ez(:,Z_num-1)-Ezt(:,Z_num)) );
     %     Hy(:,Z_num)=Hyt(:,Z_num-1)+( (c*dt-dz)/(c*dt+dz)*( Hy(:,Z_num-1)-Hyt(:,Z_num)) );
-    
+     
     %% 二阶Mur吸收条件
     %     Ex(:,1)=-Ext(:,2)+(c*dt-dx)/(c*dt+dx)*(Ex(:,2)-Ext(:,1)) +2*dx/(c*dt+dx)*(Ext(:,1)+Ext(:,2))
     
@@ -148,7 +151,7 @@ for t=1:800
     Verf_R(t)=sum( Ext(4:X_num-3,fix(Z_num*3/4)) )*dx;
     Verf_BAN(t)=sum( Ext(4:X_num-3,fix(Z_num/2)) )*dx;
     
-    %% 绘图
+    %% 绘动图
     PEx=Ex(1:X_num,1:Z_num);
     PEz=Ez(1:X_num,1:Z_num);
     Eabs=sqrt(PEx.^2+PEz.^2);
@@ -159,15 +162,31 @@ for t=1:800
     view(0,90)
     pause(0.00000001)
     
+    
 end
 
-figure
-plot(Verf_L);
-hold on
-plot(Verf_R);
-hold on
-plot(Verf_BAN);
-legend('Left','Righr','ban')
+%% 分离入射电压反射电压
+%   方法比较笨。计算的是，Vin的max所在，作为入射电压中点，前后个取
+
+[value,VinMid]=max(Verf_L);
+[value,VinrefMid]=min(Verf_L);
+
+%% 后处理
+figure(2)
+subplot(3,1,1)
+plot(Verf_L);hold on;plot(Verf_R);title(' 左右电压波形 ');
+legend('左侧挡板电压波形','右侧挡板电压波形')
+subplot(3,1,2)
+plot(Verf_L);title(' 左侧挡板电压波形 ')
+subplot(3,1,3)
+plot(Verf_R);title(' 右侧挡板电压波形 ')
+
+figure(3)
+subplot(3,1,1)
+plot(Verf_L(VinMid-50:VinMid+50));
+
+subplot(3,1,2)
+plot(Verf_L(VinrefMid-50:VinrefMid+50));
 
 
 
